@@ -4,10 +4,12 @@
 @using EpsilonWebApp.Client.Services
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Web
+@using System.Net
 @attribute [Authorize]
 @inject ICustomerService CustomerService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Customers</PageTitle>
 
@@ -20,7 +22,7 @@
             <p class="text-muted">Manage your customer database</p>
         </div>
         <div class="col-auto">
-            <button class="btn btn-primary btn-lg shadow-sm" @onclick="CreateCustomer">
+            <button class="btn btn-primary btn-lg shadow-sm" @onclick="CreateCustomer" disabled="@isLoading">
                 <i class="bi bi-plus-circle"></i> Create New Customer
             </button>
         </div>
@@ -34,7 +36,20 @@
         </div>
     }
 
-    @if (isLoading)
+    @if (showUnauthorizedError)
+    {
+        <div class="card shadow-sm border-warning">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-shield-lock display-1 text-warning mb-3"></i>
+                <h3 class="text-warning">Session Expired</h3>
+                <p class="text-muted mb-4">Your session has expired. Please log in again to continue.</p>
+                <a href="/login" class="btn btn-primary btn-lg">
+                    <i class="bi bi-box-arrow-in-right"></i> Go to Login
+                </a>
+            </div>
+        </div>
+    }
+    else if (isLoading)
     {
         <div class="text-center py-5">
             <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
@@ -187,19 +202,22 @@
     private bool isLoading = true;
     private string? errorMessage;
     private string? successMessage;
+    private bool showUnauthorizedError = false;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadCustomers();
-    }
+        // Check authentication state first
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
+        if (!user.Identity?.IsAuthenticated ?? true)
         {
-            // Check if we have a success message from navigation state
-            // This could be implemented with navigation extras if needed
+            // User is not authenticated - redirect to login
+            Navigation.NavigateTo("/login", true);
+            return;
         }
+
+        await LoadCustomers();
     }
 
     private async Task LoadCustomers()
@@ -208,11 +226,26 @@
         {
             isLoading = true;
             errorMessage = null;
+            showUnauthorizedError = false;
             customers = await CustomerService.GetCustomersAsync(currentPage, pageSize);
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized || ex.Message.Contains("401"))
+        {
+            // Session expired or not authenticated - show friendly message
+            showUnauthorizedError = true;
+            isLoading = false;
         }
         catch (Exception ex)
         {
-            errorMessage = $"Failed to load customers: {ex.Message}";
+            // Check if it's an authentication/authorization error
+            if (ex.Message.Contains("401") || ex.Message.Contains("Unauthorized"))
+            {
+                showUnauthorizedError = true;
+            }
+            else
+            {
+                errorMessage = "Unable to load customers. Please try again later.";
+            }
         }
         finally
         {
@@ -259,9 +292,20 @@
                 // Clear success message after 3 seconds
                 _ = Task.Delay(3000).ContinueWith(_ => successMessage = null);
             }
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized || ex.Message.Contains("401"))
+            {
+                showUnauthorizedError = true;
+            }
             catch (Exception ex)
             {
-                errorMessage = $"Failed to delete customer: {ex.Message}";
+                if (ex.Message.Contains("401") || ex.Message.Contains("Unauthorized"))
+                {
+                    showUnauthorizedError = true;
+                }
+                else
+                {
+                    errorMessage = $"Failed to delete customer: {ex.Message}";
+                }
             }
         }
     }

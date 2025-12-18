@@ -1,0 +1,16 @@
+@page "/logout"
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+@using EpsilonWebApp.Client.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IAuthService AuthService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.RemoveTokenAsync();
+        ((CustomAuthenticationStateProvider)AuthStateProvider).MarkUserAsLoggedOut();
+        Navigation.NavigateTo("/login", true);
+    }
+}

@@ -5,6 +5,7 @@
 @using EpsilonWebApp.Client.Services
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Web
+@using System.Net
 @attribute [Authorize]
 @inject ICustomerService CustomerService
 @inject NavigationManager Navigation
@@ -30,15 +31,25 @@
                         </div>
                     }
 
-                    @if (errorMessage != null)
+                    @if (showUnauthorizedError)
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-shield-lock display-1 text-warning mb-3"></i>
+                            <h3 class="text-warning">Session Expired</h3>
+                            <p class="text-muted mb-4">Your session has expired. Please log in again to continue.</p>
+                            <a href="/login" class="btn btn-primary btn-lg">
+                                <i class="bi bi-box-arrow-in-right"></i> Go to Login
+                            </a>
+                        </div>
+                    }
+                    else if (errorMessage != null)
                     {
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <i class="bi bi-exclamation-triangle-fill"></i> @errorMessage
                             <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
                         </div>
                     }
-
-                    @if (customer != null)
+                    else if (customer != null)
                     {
                         <EditForm Model="@customer" OnValidSubmit="@HandleSubmit">
                             <DataAnnotationsValidator />
@@ -180,6 +191,7 @@
     private bool isLoading = true;
     private string? errorMessage;
     private string? successMessage;
+    private bool showUnauthorizedError = false;
 
     private bool IsNew => !Id.HasValue;
 
@@ -202,9 +214,21 @@
                 isLoading = false;
             }
         }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized || ex.Message.Contains("401"))
+        {
+            showUnauthorizedError = true;
+            isLoading = false;
+        }
         catch (Exception ex)
         {
-            errorMessage = $"Failed to load customer: {ex.Message}";
+            if (ex.Message.Contains("401") || ex.Message.Contains("Unauthorized"))
+            {
+                showUnauthorizedError = true;
+            }
+            else
+            {
+                errorMessage = $"Failed to load customer: {ex.Message}";
+            }
             isLoading = false;
         }
     }
@@ -218,6 +242,7 @@
             isLoading = true;
             errorMessage = null;
             successMessage = null;
+            showUnauthorizedError = false;
 
             if (IsNew)
             {
@@ -238,9 +263,21 @@
                 Navigation.NavigateTo("/customers");
             }
         }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized || ex.Message.Contains("401"))
+        {
+            showUnauthorizedError = true;
+            isLoading = false;
+        }
         catch (Exception ex)
         {
-            errorMessage = $"Failed to {(IsNew ? "create" : "update")} customer: {ex.Message}";
+            if (ex.Message.Contains("401") || ex.Message.Contains("Unauthorized"))
+            {
+                showUnauthorizedError = true;
+            }
+            else
+            {
+                errorMessage = $"Failed to {(IsNew ? "create" : "update")} customer: {ex.Message}";
+            }
             isLoading = false;
         }
     }
