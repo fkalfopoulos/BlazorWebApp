@@ -1,12 +1,8 @@
-using EpsilonWebApp.Client.Pages;
-using EpsilonWebApp.Client.Services;
 using EpsilonWebApp.Components;
 using EpsilonWebApp.Data;
-using EpsilonWebApp.Repositories;
 using EpsilonWebApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -23,20 +19,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add Repositories
-builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
- 
+  
 builder.Services.AddScoped<IJwtService, JwtService>();
-
-// Add Client Services for prerendering support
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<ICustomerService, CustomerService>();
-builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
 // Add HttpClient for server-side services
 builder.Services.AddHttpClient();
 
 builder.Services.AddControllers();
- // Add Authentication
+
+// Add Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured");
 
