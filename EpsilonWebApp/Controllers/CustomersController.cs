@@ -1,5 +1,5 @@
-using EpsilonWebApp.Data;
-using EpsilonWebApp.Models;
+using EpsilonWebApp.Infrastructure.Repositories.EFCore.Configurations;
+using EpsilonWebApp.Contracts.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,9 +12,9 @@ namespace EpsilonWebApp.Controllers
     [Route("api/[controller]")]
     public class CustomersController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly CustomersDbContext _context;
 
-        public CustomersController(ApplicationDbContext context)
+        public CustomersController(CustomersDbContext context)
         {
             _context = context;
         }

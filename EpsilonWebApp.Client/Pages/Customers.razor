@@ -1,7 +1,8 @@
 @page "/customers"
 @rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
-@using EpsilonWebApp.Client.Models
-@using EpsilonWebApp.Client.Services
+@using EpsilonWebApp.Contracts.Models
+@using EpsilonWebApp.Contracts.DTOs
+@using EpsilonWebApp.Services.CustomerService
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Web
 @using System.Net

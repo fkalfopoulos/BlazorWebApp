@@ -1,11 +1,11 @@
+using EpsilonWebApp.Contracts.Models;
 using Microsoft.EntityFrameworkCore;
-using EpsilonWebApp.Models;
 
-namespace EpsilonWebApp.Data
+namespace EpsilonWebApp.Infrastructure.Repositories.EFCore.Configurations
 {
-    public class ApplicationDbContext : DbContext
+    public class CustomersDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        public CustomersDbContext(DbContextOptions<CustomersDbContext> options)
             : base(options)
         {
         }

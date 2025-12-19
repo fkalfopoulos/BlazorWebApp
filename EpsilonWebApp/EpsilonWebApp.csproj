@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EpsilonWebApp.Client\EpsilonWebApp.Client.csproj" />
+    <ProjectReference Include="..\EpsilonWebApp.Contracts\EpsilonWebApp.Contracts.csproj" />
+    <ProjectReference Include="..\EpsilonWebApp.Infrastructure\EpsilonWebApp.Infrastructure.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0">
@@ -20,10 +22,6 @@
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.2.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Migrations\" />
   </ItemGroup>
 
 </Project>

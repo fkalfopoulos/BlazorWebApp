@@ -1,4 +1,4 @@
-﻿namespace EpsilonWebApp.Models
+﻿namespace EpsilonWebApp.Contracts.Models
 {
     public class Customer
     {

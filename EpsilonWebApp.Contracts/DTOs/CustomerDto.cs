@@ -1,4 +1,4 @@
-namespace EpsilonWebApp.Client.Models
+namespace EpsilonWebApp.Contracts.DTOs
 {
     public class CustomerDto
     {

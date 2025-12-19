@@ -1,6 +1,6 @@
 using System.Net.Http.Headers;
 
-namespace EpsilonWebApp.Client.Services
+namespace EpsilonWebApp.Services.AuthorizationService
 {
     public class AuthorizationMessageHandler : DelegatingHandler
     {

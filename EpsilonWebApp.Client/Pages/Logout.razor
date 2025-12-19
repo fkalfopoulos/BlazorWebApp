@@ -1,6 +1,6 @@
 @page "/logout"
 @rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
-@using EpsilonWebApp.Client.Services
+@using EpsilonWebApp.Services.AuthorizationService
 @using Microsoft.AspNetCore.Components.Authorization
 @inject IAuthService AuthService
 @inject AuthenticationStateProvider AuthStateProvider

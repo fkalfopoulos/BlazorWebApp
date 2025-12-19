@@ -1,7 +1,8 @@
+ using System.Security.Claims;
 using Microsoft.AspNetCore.Components.Authorization;
-using System.Security.Claims;
 
-namespace EpsilonWebApp.Client.Services
+
+namespace EpsilonWebApp.Services.AuthorizationService
 {
     public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     {

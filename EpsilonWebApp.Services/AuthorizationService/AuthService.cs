@@ -1,6 +1,6 @@
 using Blazored.SessionStorage;
 
-namespace EpsilonWebApp.Client.Services
+namespace EpsilonWebApp.Services.AuthorizationService
 {
     public interface IAuthService
     {

@@ -1,5 +1,5 @@
 using EpsilonWebApp.Components;
-using EpsilonWebApp.Data;
+using EpsilonWebApp.Infrastructure.Repositories.EFCore.Configurations;
 using EpsilonWebApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -15,7 +15,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
 // Add DbContext
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+builder.Services.AddDbContext<CustomersDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add Repositories
@@ -85,7 +85,7 @@ var app = builder.Build();
 // Apply migrations and ensure database is created
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var dbContext = scope.ServiceProvider.GetRequiredService<CustomersDbContext>();
     dbContext.Database.Migrate();
 }
 

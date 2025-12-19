@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.Components.Authorization;
 using Blazored.SessionStorage;
-using EpsilonWebApp.Client.Services;
+using EpsilonWebApp.Services.AuthorizationService;
+using EpsilonWebApp.Services.CustomerService;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 

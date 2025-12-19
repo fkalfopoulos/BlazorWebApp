@@ -1,7 +1,7 @@
 using System.Net.Http.Json;
-using EpsilonWebApp.Client.Models;
+using EpsilonWebApp.Contracts.DTOs;
 
-namespace EpsilonWebApp.Client.Services
+namespace EpsilonWebApp.Services.CustomerService
 {
     public interface ICustomerService
     {
