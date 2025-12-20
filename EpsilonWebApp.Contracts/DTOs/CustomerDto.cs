@@ -1,9 +1,14 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace EpsilonWebApp.Contracts.DTOs
 {
     public class CustomerDto
     {
         public Guid Id { get; set; }
+        
+        [Required(ErrorMessage = "Company name is required")]
         public string? CompanyName { get; set; }
+        
         public string? ContactName { get; set; }
         public string? Address { get; set; }
         public string? City { get; set; }

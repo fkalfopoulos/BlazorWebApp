@@ -83,12 +83,10 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Apply migrations and ensure database is created
-using (var scope = app.Services.CreateScope())
+if (app.Environment.IsDevelopment())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<CustomersDbContext>();
-    dbContext.Database.Migrate();
+    await ApplyMigrationsAsync(app);
 }
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -117,3 +115,14 @@ app.MapRazorComponents<App>()
     .AddAdditionalAssemblies(typeof(EpsilonWebApp.Client._Imports).Assembly);
 
 app.Run();
+async Task ApplyMigrationsAsync(WebApplication app)
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<CustomersDbContext>();
+
+    var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
+    if (pendingMigrations.Any())
+    {
+        await dbContext.Database.MigrateAsync();
+    }
+}

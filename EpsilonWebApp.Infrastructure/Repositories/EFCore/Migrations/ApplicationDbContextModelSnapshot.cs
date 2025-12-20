@@ -22,7 +22,7 @@ namespace EpsilonWebApp.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("EpsilonWebApp.Models.Customer", b =>
+            modelBuilder.Entity("EpsilonWebApp.Contracts.Models", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
