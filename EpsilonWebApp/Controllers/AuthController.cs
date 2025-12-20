@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using EpsilonWebApp.Contracts.DTOs;
-using EpsilonWebApp.Services;
+using EpsilonWebApp.Services.AuthorizationService;
 
 namespace EpsilonWebApp.Controllers
 {

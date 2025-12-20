@@ -1,6 +1,6 @@
 using EpsilonWebApp.Components;
 using EpsilonWebApp.Infrastructure.Repositories.EFCore.Configurations;
-using EpsilonWebApp.Services;
+using EpsilonWebApp.Services.AuthorizationService;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
