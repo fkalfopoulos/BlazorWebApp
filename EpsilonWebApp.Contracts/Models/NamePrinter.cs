@@ -3,7 +3,7 @@ namespace EpsilonWebApp.Contracts.Models
     /// <summary>
     /// Utility class for printing names of different person types
     /// </summary>
-    public class NamePrinter
+    public class NamePrinter : INamePrinter
     {
         /// <summary>
         /// Prints the name of an Employee

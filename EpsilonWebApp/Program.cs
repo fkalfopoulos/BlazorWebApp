@@ -1,4 +1,5 @@
 using EpsilonWebApp.Components;
+using EpsilonWebApp.Contracts.Models;
 using EpsilonWebApp.Infrastructure.Repositories.EFCore.Configurations;
 using EpsilonWebApp.Services.AuthorizationService;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -21,6 +22,9 @@ builder.Services.AddDbContext<CustomersDbContext>(options =>
 // Add Repositories
   
 builder.Services.AddScoped<IJwtService, JwtService>();
+
+// Add Name Printer Service
+builder.Services.AddScoped<INamePrinter, NamePrinter>();
 
 // Add HttpClient for server-side services
 builder.Services.AddHttpClient();
