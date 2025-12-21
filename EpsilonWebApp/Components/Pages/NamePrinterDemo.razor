@@ -1,0 +1,89 @@
+@page "/nameprinter"
+@rendermode InteractiveServer
+@using EpsilonWebApp.Contracts.Models
+
+<PageTitle>Name Printer Demo</PageTitle>
+
+<div class="container mt-4">
+    <h1>Name Printer Demo</h1>
+    <p>Demonstrate method overloading with Employee and Manager classes.</p>
+
+    <div class="card mt-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Print Names</h3>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h5>Employee</h5>
+                    <div class="input-group mb-2">
+                        <input type="text" class="form-control" @bind="employeeName" placeholder="Enter employee name" />
+                    </div>
+                    <button class="btn btn-success" type="button" @onclick="PrintEmployeeName">
+                        <i class="bi bi-person"></i> Print Employee Name
+                    </button>
+                </div>
+                <div class="col-md-6">
+                    <h5>Manager</h5>
+                    <div class="input-group mb-2">
+                        <input type="text" class="form-control" @bind="managerName" placeholder="Enter manager name" />
+                    </div>
+                    <button class="btn btn-primary" type="button" @onclick="PrintManagerName">
+                        <i class="bi bi-person-badge"></i> Print Manager Name
+                    </button>
+                </div>
+            </div>
+
+            <div class="text-center mb-3">
+                <button class="btn btn-outline-secondary" type="button" @onclick="ClearAll">
+                    <i class="bi bi-x-circle"></i> Clear All
+                </button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(outputMessage))
+            {
+                <div class="alert alert-info mt-3" role="alert">
+                    <i class="bi bi-info-circle"></i> <strong>Output:</strong> @outputMessage
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string employeeName = string.Empty;
+    private string managerName = string.Empty;
+    private string outputMessage = string.Empty;
+    private NamePrinter namePrinter = new();
+
+    private void PrintEmployeeName()
+    {
+        if (string.IsNullOrWhiteSpace(employeeName))
+        {
+            outputMessage = "Please enter an employee name";
+            return;
+        }
+
+        var employee = new Employee { Name = employeeName };
+        outputMessage = namePrinter.PrintName(employee);
+    }
+
+    private void PrintManagerName()
+    {
+        if (string.IsNullOrWhiteSpace(managerName))
+        {
+            outputMessage = "Please enter a manager name";
+            return;
+        }
+
+        var manager = new Manager { Name = managerName };
+        outputMessage = namePrinter.PrintName(manager);
+    }
+
+    private void ClearAll()
+    {
+        employeeName = string.Empty;
+        managerName = string.Empty;
+        outputMessage = string.Empty;
+    }
+}
