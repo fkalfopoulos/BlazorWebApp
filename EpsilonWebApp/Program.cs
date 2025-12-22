@@ -123,10 +123,13 @@ async Task ApplyMigrationsAsync(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<CustomersDbContext>();
-
+    await dbContext.Database.EnsureCreatedAsync();
     var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
     if (pendingMigrations.Any())
     {
         await dbContext.Database.MigrateAsync();
     }
-}
+}   
+
+// Make the implicit Program class public so integration tests can access it
+public partial class Program { }
