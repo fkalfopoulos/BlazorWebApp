@@ -2,15 +2,39 @@
 @rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
 @using EpsilonWebApp.Services.AuthorizationService
 @using Microsoft.AspNetCore.Components.Authorization
-@inject IAuthService AuthService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
+@inject HttpClient Http
+
+<PageTitle>Logging Out...</PageTitle>
+
+<div class="container mt-5">
+    <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Logging out...</span>
+        </div>
+        <p class="mt-3">Logging you out securely...</p>
+    </div>
+</div>
 
 @code {
     protected override async Task OnInitializedAsync()
     {
-        await AuthService.RemoveTokenAsync();
-        ((CustomAuthenticationStateProvider)AuthStateProvider).MarkUserAsLoggedOut();
-        Navigation.NavigateTo("/login", true);
+        try
+        {
+            await Http.PostAsync("api/auth/logout", null);
+            
+            // Update authentication state (this clears cached username)
+            ((CustomAuthenticationStateProvider)AuthStateProvider).MarkUserAsLoggedOut();
+        }
+        catch
+        {
+            // Even if logout API fails, clear local state
+            ((CustomAuthenticationStateProvider)AuthStateProvider).MarkUserAsLoggedOut();
+        }
+        finally
+        {
+            Navigation.NavigateTo("/login", true);
+        }
     }
 }

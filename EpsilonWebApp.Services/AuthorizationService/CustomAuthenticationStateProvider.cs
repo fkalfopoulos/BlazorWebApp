@@ -1,4 +1,4 @@
- using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Components.Authorization;
 
 
@@ -21,13 +21,13 @@ namespace EpsilonWebApp.Services.AuthorizationService
             if (_currentState != null)
                 return _currentState;
 
-            // Check if there's a stored token (for session persistence)
-            var token = await _authService.GetTokenAsync();
+            // Get username from server (via /api/auth/me)
+            // The HttpOnly cookie is sent automatically with the request
             var username = await _authService.GetUsernameAsync();
-
-            if (!string.IsNullOrEmpty(token) && !string.IsNullOrEmpty(username))
+            
+            if (!string.IsNullOrEmpty(username))
             {
-                // User is authenticated - restore session
+                // User is authenticated - cookie is managed by browser
                 var claims = new[] { new Claim(ClaimTypes.Name, username) };
                 var identity = new ClaimsIdentity(claims, "jwt");
                 var user = new ClaimsPrincipal(identity);
@@ -52,6 +52,13 @@ namespace EpsilonWebApp.Services.AuthorizationService
         public void MarkUserAsLoggedOut()
         {
             _currentState = null;
+            
+            // Clear cached username
+            if (_authService is AuthService authService)
+            {
+                authService.ClearCache();
+            }
+            
             NotifyAuthenticationStateChanged(Task.FromResult(_anonymousState));
         }
     }

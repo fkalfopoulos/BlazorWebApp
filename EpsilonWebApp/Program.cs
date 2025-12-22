@@ -42,7 +42,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
 {
-    options.LoginPath = "/login";
+    options.LoginPath = "/loginserver";
     options.ExpireTimeSpan = TimeSpan.FromHours(2);
     options.SlidingExpiration = true;
 })
@@ -58,11 +58,29 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
     };
+    
+    // Read JWT from cookie  
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if (context.Request.Cookies.ContainsKey("authToken"))
+            {
+                context.Token = context.Request.Cookies["authToken"];
+            }
+            return Task.CompletedTask;
+        }
+    };
 })
 .AddPolicyScheme("JWT_OR_COOKIE", "JWT_OR_COOKIE", options =>
 {
     options.ForwardDefaultSelector = context =>
     {
+        // Check for JWT in cookie first
+        if (context.Request.Cookies.ContainsKey("authToken"))
+            return JwtBearerDefaults.AuthenticationScheme;
+        
+        // Then check Authorization header
         string authorization = context.Request.Headers.Authorization.ToString();
         if (!string.IsNullOrEmpty(authorization) && authorization.StartsWith("Bearer "))
             return JwtBearerDefaults.AuthenticationScheme;
@@ -86,11 +104,12 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Apply migrations and ensure database is created
+// Apply migrations and ensure database is created (skip in Testing environment)
 if (app.Environment.IsDevelopment())
 {
     await ApplyMigrationsAsync(app);
 }
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -103,6 +122,28 @@ else
 }
 
 app.UseHttpsRedirection();
+
+// Add Security Headers
+app.Use(async (context, next) =>
+{
+    // Content Security Policy - XSS Protection
+    context.Response.Headers.Append("Content-Security-Policy",
+        "default-src 'self'; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; " +
+        "style-src 'self' 'unsafe-inline'; " +
+        "img-src 'self' data: https:; " +
+        "font-src 'self' data:; " +
+        "connect-src 'self' https://localhost:* http://localhost:*; " +
+        "frame-ancestors 'none';");
+
+    // Additional security headers
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    
+    await next();
+});
 
 app.UseCors("AllowAll");
 
@@ -131,5 +172,4 @@ async Task ApplyMigrationsAsync(WebApplication app)
     }
 }   
 
-// Make the implicit Program class public so integration tests can access it
-public partial class Program { }
+ 

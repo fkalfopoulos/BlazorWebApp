@@ -1,9 +1,7 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using EpsilonWebApp.Contracts.DTOs;
 using EpsilonWebApp.Services.AuthorizationService;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EpsilonWebApp.Controllers
 {
@@ -19,56 +17,74 @@ namespace EpsilonWebApp.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
+        public IActionResult Login([FromBody] LoginRequest request)
         {
-            // Simple authentication - In production, use proper password hashing and user database
+            // Simple validation (in production, validate against database)
             if (request.Username == "admin" && request.Password == "admin123")
             {
+                // Generate JWT token
                 var token = _jwtService.GenerateToken(request.Username);
 
-                // Create cookie for browser-based authentication
-                var claims = new List<Claim>
+                // Store JWT in HttpOnly cookie (XSS protection)
+                Response.Cookies.Append("authToken", token, new CookieOptions
                 {
-                    new Claim(ClaimTypes.Name, request.Username)
-                };
+                    HttpOnly = true,        // Cannot be accessed by JavaScript
+                    Secure = true,          // Only sent over HTTPS (set to false in development if not using HTTPS)
+                    SameSite = SameSiteMode.Strict,  // CSRF protection
+                    Expires = DateTimeOffset.UtcNow.AddHours(2),
+                    Path = "/"
+                });
 
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var authProperties = new AuthenticationProperties
-                {
-                    IsPersistent = true,
-                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(2)
-                };
-
-                await HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(claimsIdentity),
-                    authProperties);
-
+                // Return user info (NOT the token)
                 return Ok(new LoginResponse
                 {
-                    Token = token,
-                    Username = request.Username
+                    Username = request.Username,
                 });
             }
 
-            return Unauthorized(new { message = "Invalid username or password" });
+            return Unauthorized(new { Message = "Invalid credentials" });
         }
 
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return Ok(new { message = "Logged out successfully" });
+            // Remove the authentication cookie
+            Response.Cookies.Delete("authToken");
+            
+            return Ok(new { Message = "Logged out successfully" });
         }
 
-        [HttpGet("validate")]
-        public IActionResult ValidateToken([FromQuery] string token)
+        [HttpGet("check")]
+        public IActionResult CheckAuth()
         {
-            var principal = _jwtService.ValidateToken(token);
-            if (principal == null)
+            // Check if user has valid auth cookie
+            var token = Request.Cookies["authToken"];
+            
+            if (string.IsNullOrEmpty(token))
+            {
                 return Unauthorized();
+            }
 
-            return Ok(new { valid = true, username = principal.Identity?.Name });
+            // Optionally validate the token here
+            return Ok(new { IsAuthenticated = true });
+        }
+
+        /// <summary>
+        /// Gets current user's claims
+        /// Allows client to read username without storing it separately
+        /// </summary>
+        [HttpGet("me")]
+        [Authorize]
+        public IActionResult GetCurrentUser()
+        {
+            var username = User.Identity?.Name;
+            
+            if (string.IsNullOrEmpty(username))
+            {
+                return Unauthorized();
+            }
+
+            return Ok(new { Username = username });
         }
     }
 }

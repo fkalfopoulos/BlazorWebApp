@@ -1,51 +1,67 @@
-using Blazored.SessionStorage;
+using Microsoft.Extensions.Logging;
+using System.Net.Http.Json;
 
 namespace EpsilonWebApp.Services.AuthorizationService
 {
     public interface IAuthService
     {
-        Task<string?> GetTokenAsync();
-        Task SetTokenAsync(string token);
-        Task RemoveTokenAsync();
         Task<string?> GetUsernameAsync();
-        Task SetUsernameAsync(string username);
     }
 
     public class AuthService : IAuthService
     {
-        private readonly ISessionStorageService _sessionStorage;
-        private const string TokenKey = "authToken";
-        private const string UsernameKey = "username";
+        private readonly HttpClient _httpClient;
+        private string? _cachedUsername;
+        private readonly ILogger<AuthService> logger;
 
-        public AuthService(ISessionStorageService sessionStorage)
+        public AuthService(HttpClient httpClient, ILogger<AuthService> logger)
         {
-            _sessionStorage = sessionStorage;
+            _httpClient = httpClient;
+            this.logger = logger;
         }
 
-        public async Task<string?> GetTokenAsync()
-        {
-            return await _sessionStorage.GetItemAsync<string>(TokenKey);
-        }
-
-        public async Task SetTokenAsync(string token)
-        {
-            await _sessionStorage.SetItemAsync(TokenKey, token);
-        }
-
-        public async Task RemoveTokenAsync()
-        {
-            await _sessionStorage.RemoveItemAsync(TokenKey);
-            await _sessionStorage.RemoveItemAsync(UsernameKey);
-        }
-
+        /// <summary>
+        /// Gets username from server by calling /api/auth/me
+        /// The JWT cookie is sent automatically by the browser
+        /// Server reads the JWT and returns the username from claims
+        /// </summary>
         public async Task<string?> GetUsernameAsync()
         {
-            return await _sessionStorage.GetItemAsync<string>(UsernameKey);
+            // Return cached username if available
+            if (!string.IsNullOrEmpty(_cachedUsername))
+                return _cachedUsername;
+
+            try
+            {
+                // Call server endpoint - cookie sent automatically
+                var response = await _httpClient.GetAsync("api/auth/me");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<UserInfoResponse>();
+                    if (result != null)
+                    {
+                        _cachedUsername = result.Username;
+                        return _cachedUsername;
+                    }
+                }
+            }
+            catch
+            {
+                logger.LogWarning("Failed to get username from /api/auth/me");
+            }
+
+            return null;
         }
 
-        public async Task SetUsernameAsync(string username)
+        public void ClearCache()
         {
-            await _sessionStorage.SetItemAsync(UsernameKey, username);
+            _cachedUsername = null;
+        }
+
+        private class UserInfoResponse
+        {
+            public string Username { get; set; } = string.Empty;
         }
     }
 }
